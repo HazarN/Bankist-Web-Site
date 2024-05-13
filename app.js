@@ -8,7 +8,11 @@ const btnsOpenModal = document.querySelectorAll('.btn--show-modal');
 const header = document.querySelector('.header');
 const section1 = document.querySelector('#section--1');
 const navLinks = document.querySelector('.nav__links');
+const tabs = document.querySelectorAll('.operations__tab');
+const tabsContainer = document.querySelector('.operations__tab-container');
+const tabsContents = document.querySelectorAll('.operations__content');
 
+/////////////////////////////
 // Cookie Notification Issues
 
 const cookieMessage = document.createElement('div');
@@ -42,31 +46,36 @@ document.addEventListener('keydown', e => {
 //////////////////
 // Page Navigation
 
-// event delegation: passing three different scrolling event in one event handler
 navLinks.addEventListener('click', e => {
   e.preventDefault();
 
-  // event must contain the link properties only
-  if (
-    e.target.classList.contains('nav__link') &&
-    !e.target.classList.contains('nav__link--btn')
-  ) {
-    const selectorId = e.target.getAttribute('href');
-    document.querySelector(selectorId).scrollIntoView({ behavior: 'smooth' });
-  }
+  const clicked = e.target.closest('.nav__link');
+
+  if (!clicked || clicked.classList.contains('nav__link--btn')) return;
+
+  const selectorId = clicked.getAttribute('href');
+  document.querySelector(selectorId).scrollIntoView({ behavior: 'smooth' });
 });
 
-// learn more
-btnScrollTo.addEventListener('click', e => {
-  /* old way
-  const section1Coords = section1.getBoundingClientRect();
+btnScrollTo.addEventListener('click', e =>
+  section1.scrollIntoView({ behavior: 'smooth' })
+);
 
-  window.scrollTo({
-    left: section1Coords.left + window.scrollX,
-    top: section1Coords.top + window.scrollY,
-    behavior: 'smooth',
-  }); */
+////////////////////////////////////////////
+// Building and Displaying Tabbed Components
 
-  // for newer browsers
-  section1.scrollIntoView({ behavior: 'smooth' });
+tabsContainer.addEventListener('click', e => {
+  const clicked = e.target.closest('.operations__tab');
+
+  if (!clicked) return;
+
+  tabs.forEach(tab => tab.classList.remove('operations__tab--active'));
+  clicked.classList.add('operations__tab--active');
+  tabsContents.forEach(content =>
+    content.classList.remove('operations__content--active')
+  );
+
+  document
+    .querySelector(`.operations__content--${clicked.dataset.tab}`)
+    .classList.add('operations__content--active');
 });
