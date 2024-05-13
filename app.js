@@ -11,6 +11,7 @@ const navLinks = document.querySelector('.nav__links');
 const tabs = document.querySelectorAll('.operations__tab');
 const tabsContainer = document.querySelector('.operations__tab-container');
 const tabsContents = document.querySelectorAll('.operations__content');
+const navbar = document.querySelector('.nav');
 
 /////////////////////////////
 // Cookie Notification Issues
@@ -51,10 +52,13 @@ navLinks.addEventListener('click', e => {
 
   const clicked = e.target.closest('.nav__link');
 
-  if (!clicked || clicked.classList.contains('nav__link--btn')) return;
-
-  const selectorId = clicked.getAttribute('href');
-  document.querySelector(selectorId).scrollIntoView({ behavior: 'smooth' });
+  if (
+    clicked.classList.contains('nav__link') &&
+    !clicked.classList.contains('nav__link--btn')
+  ) {
+    const selectorId = clicked.getAttribute('href');
+    document.querySelector(selectorId).scrollIntoView({ behavior: 'smooth' });
+  }
 });
 
 btnScrollTo.addEventListener('click', e =>
@@ -79,3 +83,22 @@ tabsContainer.addEventListener('click', e => {
     .querySelector(`.operations__content--${clicked.dataset.tab}`)
     .classList.add('operations__content--active');
 });
+
+//////////////////////////
+// Navbar Fading Animation
+
+const handleFading = function (e) {
+  if (e.target.classList.contains('nav__link')) {
+    const link = e.target;
+    const siblings = link.closest('.nav').querySelectorAll('.nav__link');
+    const logo = link.closest('.nav').querySelector('img');
+
+    siblings.forEach(sb => {
+      if (sb !== link) sb.style.opacity = this;
+    });
+    logo.style.opacity = this;
+  }
+};
+
+navbar.addEventListener('mouseover', handleFading.bind(0.5));
+navbar.addEventListener('mouseout', handleFading.bind(1));
