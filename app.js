@@ -102,3 +102,17 @@ const handleFading = function (e) {
 
 navbar.addEventListener('mouseover', handleFading.bind(0.5));
 navbar.addEventListener('mouseout', handleFading.bind(1));
+
+////////////////////
+// Sticky Navigation
+
+const initialCoords = section1.getBoundingClientRect();
+
+// performance killer: use Intersection Observer API
+window.addEventListener('scroll', () => {
+  if (window.scrollY > initialCoords.top) {
+    navbar.classList.add('sticky');
+  } else {
+    navbar.classList.remove('sticky');
+  }
+});
