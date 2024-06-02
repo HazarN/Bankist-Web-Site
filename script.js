@@ -132,8 +132,10 @@ const lazyImageCallback = (entries, observer) => {
   // switching to good quality
   entry.target.src = entry.target.dataset.src;
 
-  // removing the blur
-  entry.target.classList.remove('lazy-img');
+  // removing the blur when image is loaded
+  entry.target.addEventListener('load', () => {
+    entry.target.classList.remove('lazy-img');
+  });
 
   observer.unobserve(entry.target);
 };
@@ -158,7 +160,7 @@ const sectionObserver = new IntersectionObserver(sectionRevealCallback, {
 });
 
 sections.forEach((section) => {
-  section.classList.add('section--hidden');
+  //section.classList.add('section--hidden');
   sectionObserver.observe(section);
 });
 
@@ -167,7 +169,44 @@ sections.forEach((section) => {
 
 const imageObserver = new IntersectionObserver(lazyImageCallback, {
   root: null,
-  threshold: 0.45,
+  threshold: 0,
+  rootMargin: '200px',
 });
 
 lazyImgTargets.forEach((img) => imageObserver.observe(img));
+
+///////////////////
+// Slider Component
+
+let currSlide = 0;
+
+const slides = document.querySelectorAll('.slide');
+
+const slider = document.querySelector('.slider');
+slider.style.overflow = 'visible';
+
+const sliderBtnL = document.querySelector('.slider__btn--left');
+const sliderBtnR = document.querySelector('.slider__btn--right');
+
+slides.forEach((slide, i) => {
+  slide.style.transform = `translateX(${100 * i}%)`;
+  console.log(slide);
+});
+
+sliderBtnL.addEventListener('click', () => {
+  if (currSlide === 0) currSlide = slides.length - 1;
+  else currSlide--;
+
+  slides.forEach((slide, i) => {
+    slide.style.transform = `translateX(${100 * (i + currSlide)}%)`;
+  });
+});
+
+sliderBtnR.addEventListener('click', () => {
+  if (currSlide === slides.length - 1) currSlide = 0;
+  else currSlide++;
+
+  slides.forEach((slide, i) => {
+    slide.style.transform = `translateX(${100 * (i - currSlide)}%)`;
+  });
+});
