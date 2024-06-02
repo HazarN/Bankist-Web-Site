@@ -7,16 +7,18 @@ const btnScrollTo = document.querySelector('.btn--scroll-to');
 const btnsOpenModal = document.querySelectorAll('.btn--show-modal');
 const header = document.querySelector('.header');
 const section1 = document.querySelector('#section--1');
+const sections = document.querySelectorAll('.section');
 const navLinks = document.querySelector('.nav__links');
 const tabs = document.querySelectorAll('.operations__tab');
 const tabsContainer = document.querySelector('.operations__tab-container');
 const tabsContents = document.querySelectorAll('.operations__content');
 const navbar = document.querySelector('.nav');
+const lazyImgTargets = document.querySelectorAll('img[data-src]');
+const cookieMessage = document.createElement('div');
+const navbarHeight = navbar.getBoundingClientRect().height;
 
 /////////////////////////////
 // Cookie Notification Issues
-
-const cookieMessage = document.createElement('div');
 
 cookieMessage.classList.add('cookie-message');
 cookieMessage.style.backgroundColor = '#37383D';
@@ -37,17 +39,17 @@ document
 ///////////////////
 // Modal Operations
 
-btnsOpenModal.forEach(btn => btn.addEventListener('click', openModal));
+btnsOpenModal.forEach((btn) => btn.addEventListener('click', openModal));
 btnCloseModal.addEventListener('click', closeModal);
 overlay.addEventListener('click', closeModal);
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
 });
 
 //////////////////
 // Page Navigation
 
-navLinks.addEventListener('click', e => {
+navLinks.addEventListener('click', (e) => {
   e.preventDefault();
 
   const clicked = e.target.closest('.nav__link');
@@ -61,21 +63,21 @@ navLinks.addEventListener('click', e => {
   }
 });
 
-btnScrollTo.addEventListener('click', e =>
+btnScrollTo.addEventListener('click', (e) =>
   section1.scrollIntoView({ behavior: 'smooth' })
 );
 
 ////////////////////////////////////////////
 // Building and Displaying Tabbed Components
 
-tabsContainer.addEventListener('click', e => {
+tabsContainer.addEventListener('click', (e) => {
   const clicked = e.target.closest('.operations__tab');
 
   if (!clicked) return;
 
-  tabs.forEach(tab => tab.classList.remove('operations__tab--active'));
+  tabs.forEach((tab) => tab.classList.remove('operations__tab--active'));
   clicked.classList.add('operations__tab--active');
-  tabsContents.forEach(content =>
+  tabsContents.forEach((content) =>
     content.classList.remove('operations__content--active')
   );
 
@@ -93,7 +95,7 @@ const handleFading = function (e) {
     const siblings = link.closest('.nav').querySelectorAll('.nav__link');
     const logo = link.closest('.nav').querySelector('img');
 
-    siblings.forEach(sb => {
+    siblings.forEach((sb) => {
       if (sb !== link) sb.style.opacity = this;
     });
     logo.style.opacity = this;
@@ -103,55 +105,69 @@ const handleFading = function (e) {
 navbar.addEventListener('mouseover', handleFading.bind(0.5));
 navbar.addEventListener('mouseout', handleFading.bind(1));
 
+/////////////////////////////
+// Intersection API Callbacks
+
+const stickyCallback = (entries) => {
+  const [entry] = entries;
+
+  if (!entry.isIntersecting) navbar.classList.add('sticky');
+  else navbar.classList.remove('sticky');
+};
+
+const sectionRevealCallback = (entries, observer) => {
+  const [entry] = entries;
+
+  if (!entry.isIntersecting) return;
+
+  entry.target.classList.remove('section--hidden');
+  observer.unobserve(entry.target);
+};
+
+const lazyImageCallback = (entries, observer) => {
+  const [entry] = entries;
+
+  if (!entry.isIntersecting) return;
+
+  // switching to good quality
+  entry.target.src = entry.target.dataset.src;
+
+  // removing the blur
+  entry.target.classList.remove('lazy-img');
+
+  observer.unobserve(entry.target);
+};
+
 ////////////////////
 // Sticky Navigation
 
-const navbarHeight = navbar.getBoundingClientRect().height;
-
-const stickyNavbarObserver = new IntersectionObserver(
-  // observer callback
-  entries => {
-    const [entry] = entries;
-
-    if (!entry.isIntersecting) navbar.classList.add('sticky');
-    else navbar.classList.remove('sticky');
-  },
-  // observer options object
-  {
-    root: null, // whole viewport
-    rootMargin: `-${navbarHeight}px`,
-    threshold: 0,
-  }
-);
+const stickyNavbarObserver = new IntersectionObserver(stickyCallback, {
+  root: null, // whole viewport
+  rootMargin: `-${navbarHeight}px`,
+  threshold: 0,
+});
 
 stickyNavbarObserver.observe(header);
 
+////////////////////////////
 // Reveal sections on scroll
 
-const sections = document.querySelectorAll('.section');
+const sectionObserver = new IntersectionObserver(sectionRevealCallback, {
+  root: null,
+  threshold: 0.25,
+});
 
-const sectionObserver = new IntersectionObserver(
-  (entries, observer) => {
-    const [entry] = entries;
-
-    if (!entry.isIntersecting) return;
-
-    entry.target.classList.remove('section--hidden');
-    observer.unobserve(entry.target);
-  },
-  {
-    root: null,
-    threshold: 0.25,
-  }
-);
-
-sections.forEach(section => {
+sections.forEach((section) => {
   section.classList.add('section--hidden');
   sectionObserver.observe(section);
 });
 
-// Image lazy loading
+/////////////////////////////////////////////////////
+// Image lazy loading (to improve better performance)
 
-const lazyImgTargets = document.querySelectorAll('img[data-src]');
+const imageObserver = new IntersectionObserver(lazyImageCallback, {
+  root: null,
+  threshold: 0.45,
+});
 
-// to be continued
+lazyImgTargets.forEach((img) => imageObserver.observe(img));
