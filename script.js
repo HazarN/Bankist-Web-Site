@@ -37,17 +37,17 @@ document
 ///////////////////
 // Modal Operations
 
-btnsOpenModal.forEach(btn => btn.addEventListener('click', openModal));
+btnsOpenModal.forEach((btn) => btn.addEventListener('click', openModal));
 btnCloseModal.addEventListener('click', closeModal);
 overlay.addEventListener('click', closeModal);
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
 });
 
 //////////////////
 // Page Navigation
 
-navLinks.addEventListener('click', e => {
+navLinks.addEventListener('click', (e) => {
   e.preventDefault();
 
   const clicked = e.target.closest('.nav__link');
@@ -61,21 +61,21 @@ navLinks.addEventListener('click', e => {
   }
 });
 
-btnScrollTo.addEventListener('click', e =>
+btnScrollTo.addEventListener('click', (e) =>
   section1.scrollIntoView({ behavior: 'smooth' })
 );
 
 ////////////////////////////////////////////
 // Building and Displaying Tabbed Components
 
-tabsContainer.addEventListener('click', e => {
+tabsContainer.addEventListener('click', (e) => {
   const clicked = e.target.closest('.operations__tab');
 
   if (!clicked) return;
 
-  tabs.forEach(tab => tab.classList.remove('operations__tab--active'));
+  tabs.forEach((tab) => tab.classList.remove('operations__tab--active'));
   clicked.classList.add('operations__tab--active');
-  tabsContents.forEach(content =>
+  tabsContents.forEach((content) =>
     content.classList.remove('operations__content--active')
   );
 
@@ -93,7 +93,7 @@ const handleFading = function (e) {
     const siblings = link.closest('.nav').querySelectorAll('.nav__link');
     const logo = link.closest('.nav').querySelector('img');
 
-    siblings.forEach(sb => {
+    siblings.forEach((sb) => {
       if (sb !== link) sb.style.opacity = this;
     });
     logo.style.opacity = this;
@@ -110,7 +110,7 @@ const navbarHeight = navbar.getBoundingClientRect().height;
 
 const stickyNavbarObserver = new IntersectionObserver(
   // observer callback
-  entries => {
+  (entries) => {
     const [entry] = entries;
 
     if (!entry.isIntersecting) navbar.classList.add('sticky');
@@ -145,13 +145,32 @@ const sectionObserver = new IntersectionObserver(
   }
 );
 
-sections.forEach(section => {
+sections.forEach((section) => {
   section.classList.add('section--hidden');
   sectionObserver.observe(section);
 });
-
-// Image lazy loading
+// Image lazy loading (to improve better performance)
 
 const lazyImgTargets = document.querySelectorAll('img[data-src]');
 
-// to be continued
+const imageObserver = new IntersectionObserver(
+  (entries, observer) => {
+    const [entry] = entries;
+
+    if (!entry.isIntersecting) return;
+
+    // switching to good quality
+    entry.target.src = entry.target.dataset.src;
+
+    // removing the blur
+    entry.target.classList.remove('lazy-img');
+
+    observer.unobserve(entry.target);
+  },
+  {
+    root: null,
+    threshold: 0.45,
+  }
+);
+
+lazyImgTargets.forEach((img) => imageObserver.observe(img));
