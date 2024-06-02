@@ -149,3 +149,9 @@ sections.forEach(section => {
   section.classList.add('section--hidden');
   sectionObserver.observe(section);
 });
+
+// Image lazy loading
+
+const lazyImgTargets = document.querySelectorAll('img[data-src]');
+
+// to be continued
