@@ -14,8 +14,15 @@ const tabsContainer = document.querySelector('.operations__tab-container');
 const tabsContents = document.querySelectorAll('.operations__content');
 const navbar = document.querySelector('.nav');
 const lazyImgTargets = document.querySelectorAll('img[data-src]');
+const slider = document.querySelector('.slider');
+const slides = document.querySelectorAll('.slide');
+const sliderBtnL = document.querySelector('.slider__btn--left');
+const sliderBtnR = document.querySelector('.slider__btn--right');
+const dotContainer = document.querySelector('.dots');
 const cookieMessage = document.createElement('div');
 const navbarHeight = navbar.getBoundingClientRect().height;
+
+let currSlide = 0;
 
 /////////////////////////////
 // Cookie Notification Issues
@@ -39,17 +46,17 @@ document
 ///////////////////
 // Modal Operations
 
-btnsOpenModal.forEach((btn) => btn.addEventListener('click', openModal));
+btnsOpenModal.forEach(btn => btn.addEventListener('click', openModal));
 btnCloseModal.addEventListener('click', closeModal);
 overlay.addEventListener('click', closeModal);
-document.addEventListener('keydown', (e) => {
+document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
 });
 
 //////////////////
 // Page Navigation
 
-navLinks.addEventListener('click', (e) => {
+navLinks.addEventListener('click', e => {
   e.preventDefault();
 
   const clicked = e.target.closest('.nav__link');
@@ -63,21 +70,21 @@ navLinks.addEventListener('click', (e) => {
   }
 });
 
-btnScrollTo.addEventListener('click', (e) =>
+btnScrollTo.addEventListener('click', e =>
   section1.scrollIntoView({ behavior: 'smooth' })
 );
 
 ////////////////////////////////////////////
 // Building and Displaying Tabbed Components
 
-tabsContainer.addEventListener('click', (e) => {
+tabsContainer.addEventListener('click', e => {
   const clicked = e.target.closest('.operations__tab');
 
   if (!clicked) return;
 
-  tabs.forEach((tab) => tab.classList.remove('operations__tab--active'));
+  tabs.forEach(tab => tab.classList.remove('operations__tab--active'));
   clicked.classList.add('operations__tab--active');
-  tabsContents.forEach((content) =>
+  tabsContents.forEach(content =>
     content.classList.remove('operations__content--active')
   );
 
@@ -95,7 +102,7 @@ const handleFading = function (e) {
     const siblings = link.closest('.nav').querySelectorAll('.nav__link');
     const logo = link.closest('.nav').querySelector('img');
 
-    siblings.forEach((sb) => {
+    siblings.forEach(sb => {
       if (sb !== link) sb.style.opacity = this;
     });
     logo.style.opacity = this;
@@ -108,7 +115,7 @@ navbar.addEventListener('mouseout', handleFading.bind(1));
 /////////////////////////////
 // Intersection API Callbacks
 
-const stickyCallback = (entries) => {
+const stickyCallback = entries => {
   const [entry] = entries;
 
   if (!entry.isIntersecting) navbar.classList.add('sticky');
@@ -159,8 +166,8 @@ const sectionObserver = new IntersectionObserver(sectionRevealCallback, {
   threshold: 0.25,
 });
 
-sections.forEach((section) => {
-  //section.classList.add('section--hidden');
+sections.forEach(section => {
+  section.classList.add('section--hidden');
   sectionObserver.observe(section);
 });
 
@@ -173,40 +180,80 @@ const imageObserver = new IntersectionObserver(lazyImageCallback, {
   rootMargin: '200px',
 });
 
-lazyImgTargets.forEach((img) => imageObserver.observe(img));
+lazyImgTargets.forEach(img => imageObserver.observe(img));
 
 ///////////////////
 // Slider Component
 
-let currSlide = 0;
-
-const slides = document.querySelectorAll('.slide');
-
-const slider = document.querySelector('.slider');
-slider.style.overflow = 'visible';
-
-const sliderBtnL = document.querySelector('.slider__btn--left');
-const sliderBtnR = document.querySelector('.slider__btn--right');
-
-slides.forEach((slide, i) => {
-  slide.style.transform = `translateX(${100 * i}%)`;
-  console.log(slide);
-});
-
-sliderBtnL.addEventListener('click', () => {
-  if (currSlide === 0) currSlide = slides.length - 1;
-  else currSlide--;
-
-  slides.forEach((slide, i) => {
-    slide.style.transform = `translateX(${100 * (i + currSlide)}%)`;
-  });
-});
-
-sliderBtnR.addEventListener('click', () => {
-  if (currSlide === slides.length - 1) currSlide = 0;
-  else currSlide++;
-
+const changeSlide = currSlide => {
   slides.forEach((slide, i) => {
     slide.style.transform = `translateX(${100 * (i - currSlide)}%)`;
   });
+};
+
+const next = () => {
+  if (currSlide === slides.length - 1) currSlide = 0;
+  else currSlide++;
+
+  changeSlide(currSlide);
+  activateDots(currSlide);
+};
+
+const prev = () => {
+  if (currSlide === 0) currSlide = slides.length - 1;
+  else currSlide--;
+
+  changeSlide(currSlide);
+  activateDots(currSlide);
+};
+
+const createDots = () => {
+  slides.forEach((_, i) => {
+    dotContainer.insertAdjacentHTML(
+      'beforeend',
+      `<button class="dots__dot" data-slide="${i}"></button>`
+    );
+  });
+};
+
+const activateDots = slideNumber => {
+  document
+    .querySelectorAll('.dots__dot')
+    .forEach(dot => dot.classList.remove('dots__dot--active'));
+
+  document
+    .querySelector(`.dots__dot[data-slide="${slideNumber}"]`)
+    .classList.add('dots__dot--active');
+};
+
+const initSlider = () => {
+  changeSlide(0);
+  createDots();
+  activateDots(0);
+};
+initSlider();
+
+slides.forEach((slide, i) => {
+  slide.style.transform = `translateX(${100 * i}%)`;
+});
+
+sliderBtnL.addEventListener('click', prev);
+sliderBtnR.addEventListener('click', next);
+
+// keyboard events
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') prev();
+  else if (e.key === 'ArrowRight') next();
+  else return;
+});
+
+// dot events
+dotContainer.addEventListener('click', e => {
+  const dot = e.target;
+
+  if (!dot.classList.contains('dots__dot')) return;
+
+  const { slide: slideNumber } = dot.dataset;
+  changeSlide(slideNumber);
+  activateDots(slideNumber);
 });
