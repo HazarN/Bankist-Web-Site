@@ -106,6 +106,8 @@ navbar.addEventListener('mouseout', handleFading.bind(1));
 ////////////////////
 // Sticky Navigation
 
+const navbarHeight = navbar.getBoundingClientRect().height;
+
 const stickyNavbarObserver = new IntersectionObserver(
   // observer callback
   entries => {
@@ -117,9 +119,33 @@ const stickyNavbarObserver = new IntersectionObserver(
   // observer options object
   {
     root: null, // whole viewport
-    rootMargin: '-90px',
+    rootMargin: `-${navbarHeight}px`,
     threshold: 0,
   }
 );
 
 stickyNavbarObserver.observe(header);
+
+// Reveal sections on scroll
+
+const sections = document.querySelectorAll('.section');
+
+const sectionObserver = new IntersectionObserver(
+  (entries, observer) => {
+    const [entry] = entries;
+
+    if (!entry.isIntersecting) return;
+
+    entry.target.classList.remove('section--hidden');
+    observer.unobserve(entry.target);
+  },
+  {
+    root: null,
+    threshold: 0.25,
+  }
+);
+
+sections.forEach(section => {
+  section.classList.add('section--hidden');
+  sectionObserver.observe(section);
+});
