@@ -106,13 +106,20 @@ navbar.addEventListener('mouseout', handleFading.bind(1));
 ////////////////////
 // Sticky Navigation
 
-const initialCoords = section1.getBoundingClientRect();
+const stickyNavbarObserver = new IntersectionObserver(
+  // observer callback
+  entries => {
+    const [entry] = entries;
 
-// performance killer: use Intersection Observer API
-window.addEventListener('scroll', () => {
-  if (window.scrollY > initialCoords.top) {
-    navbar.classList.add('sticky');
-  } else {
-    navbar.classList.remove('sticky');
+    if (!entry.isIntersecting) navbar.classList.add('sticky');
+    else navbar.classList.remove('sticky');
+  },
+  // observer options object
+  {
+    root: null, // whole viewport
+    rootMargin: '-90px',
+    threshold: 0,
   }
-});
+);
+
+stickyNavbarObserver.observe(header);
