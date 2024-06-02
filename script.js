@@ -7,16 +7,18 @@ const btnScrollTo = document.querySelector('.btn--scroll-to');
 const btnsOpenModal = document.querySelectorAll('.btn--show-modal');
 const header = document.querySelector('.header');
 const section1 = document.querySelector('#section--1');
+const sections = document.querySelectorAll('.section');
 const navLinks = document.querySelector('.nav__links');
 const tabs = document.querySelectorAll('.operations__tab');
 const tabsContainer = document.querySelector('.operations__tab-container');
 const tabsContents = document.querySelectorAll('.operations__content');
 const navbar = document.querySelector('.nav');
+const lazyImgTargets = document.querySelectorAll('img[data-src]');
+const cookieMessage = document.createElement('div');
+const navbarHeight = navbar.getBoundingClientRect().height;
 
 /////////////////////////////
 // Cookie Notification Issues
-
-const cookieMessage = document.createElement('div');
 
 cookieMessage.classList.add('cookie-message');
 cookieMessage.style.backgroundColor = '#37383D';
@@ -103,74 +105,69 @@ const handleFading = function (e) {
 navbar.addEventListener('mouseover', handleFading.bind(0.5));
 navbar.addEventListener('mouseout', handleFading.bind(1));
 
+/////////////////////////////
+// Intersection API Callbacks
+
+const stickyCallback = (entries) => {
+  const [entry] = entries;
+
+  if (!entry.isIntersecting) navbar.classList.add('sticky');
+  else navbar.classList.remove('sticky');
+};
+
+const sectionRevealCallback = (entries, observer) => {
+  const [entry] = entries;
+
+  if (!entry.isIntersecting) return;
+
+  entry.target.classList.remove('section--hidden');
+  observer.unobserve(entry.target);
+};
+
+const lazyImageCallback = (entries, observer) => {
+  const [entry] = entries;
+
+  if (!entry.isIntersecting) return;
+
+  // switching to good quality
+  entry.target.src = entry.target.dataset.src;
+
+  // removing the blur
+  entry.target.classList.remove('lazy-img');
+
+  observer.unobserve(entry.target);
+};
+
 ////////////////////
 // Sticky Navigation
 
-const navbarHeight = navbar.getBoundingClientRect().height;
-
-const stickyNavbarObserver = new IntersectionObserver(
-  // observer callback
-  (entries) => {
-    const [entry] = entries;
-
-    if (!entry.isIntersecting) navbar.classList.add('sticky');
-    else navbar.classList.remove('sticky');
-  },
-  // observer options object
-  {
-    root: null, // whole viewport
-    rootMargin: `-${navbarHeight}px`,
-    threshold: 0,
-  }
-);
+const stickyNavbarObserver = new IntersectionObserver(stickyCallback, {
+  root: null, // whole viewport
+  rootMargin: `-${navbarHeight}px`,
+  threshold: 0,
+});
 
 stickyNavbarObserver.observe(header);
 
+////////////////////////////
 // Reveal sections on scroll
 
-const sections = document.querySelectorAll('.section');
-
-const sectionObserver = new IntersectionObserver(
-  (entries, observer) => {
-    const [entry] = entries;
-
-    if (!entry.isIntersecting) return;
-
-    entry.target.classList.remove('section--hidden');
-    observer.unobserve(entry.target);
-  },
-  {
-    root: null,
-    threshold: 0.25,
-  }
-);
+const sectionObserver = new IntersectionObserver(sectionRevealCallback, {
+  root: null,
+  threshold: 0.25,
+});
 
 sections.forEach((section) => {
   section.classList.add('section--hidden');
   sectionObserver.observe(section);
 });
+
+/////////////////////////////////////////////////////
 // Image lazy loading (to improve better performance)
 
-const lazyImgTargets = document.querySelectorAll('img[data-src]');
-
-const imageObserver = new IntersectionObserver(
-  (entries, observer) => {
-    const [entry] = entries;
-
-    if (!entry.isIntersecting) return;
-
-    // switching to good quality
-    entry.target.src = entry.target.dataset.src;
-
-    // removing the blur
-    entry.target.classList.remove('lazy-img');
-
-    observer.unobserve(entry.target);
-  },
-  {
-    root: null,
-    threshold: 0.45,
-  }
-);
+const imageObserver = new IntersectionObserver(lazyImageCallback, {
+  root: null,
+  threshold: 0.45,
+});
 
 lazyImgTargets.forEach((img) => imageObserver.observe(img));
